@@ -11,14 +11,14 @@
         "--host",
         "0.0.0.0",
         "--port",
-        "8005",
+        "8007",
         "--reload"
       ],
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
       "env": {
         "PYTHONPATH": "${workspaceFolder}",
-        "PORT": "8005"
+        "PORT": "8007"
       },
       "console": "integratedTerminal",
       "jinja": true,
