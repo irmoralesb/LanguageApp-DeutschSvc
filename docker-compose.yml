@@ -30,8 +30,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "mssql+aioodbc://sa:${SA_PASSWORD:-YourStrong!Passw0rd}@deutsch-db:1433/DeutschDB?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes&LongAsMax=Yes"
-      DATABASE_MIGRATION_URL: "mssql+pyodbc://sa:${SA_PASSWORD:-YourStrong!Passw0rd}@deutsch-db:1433/DeutschDB?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes&LongAsMax=Yes"
+      DEUTSCH_DATABASE_URL: "mssql+aioodbc://sa:${SA_PASSWORD:-YourStrong!Passw0rd}@deutsch-db:1433/DeutschDB?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes&LongAsMax=Yes"
+      DEUTSCH_DATABASE_MIGRATION_URL: "mssql+pyodbc://sa:${SA_PASSWORD:-YourStrong!Passw0rd}@deutsch-db:1433/DeutschDB?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes&LongAsMax=Yes"
       SERVICE_NAME: deutsch-service
       SERVICE_ID: c0000006-0000-0000-0000-000000000001
     networks:
