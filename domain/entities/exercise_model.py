@@ -23,6 +23,20 @@ class NounGenderExerciseItem:
 
 
 @dataclass
+class NounCaseExercisePrompt:
+    german_noun_id: UUID
+    singular: str
+    definition: str
+    grammatical_case: str
+    case_label: str
+    sentence_with_blank: str
+    scenario_native: str
+    article_options: list[str]
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+@dataclass
 class VerbExercisePrompt:
     german_verb_id: UUID | None
     target_language_code: str

@@ -11,6 +11,10 @@ from application.schemas.exercise_schema import (
     NounGenderExerciseItemResponse,
     NounGenderExerciseEvaluateRequest,
     NounGenderExerciseEvaluateResponse,
+    NounCaseExerciseGenerateRequest,
+    NounCaseExerciseGenerateResponse,
+    NounCaseExerciseEvaluateRequest,
+    NounCaseExerciseEvaluateResponse,
     NounExerciseGenerateRequest,
     NounExerciseGenerateResponse,
     NounExerciseEvaluateRequest,
@@ -68,6 +72,52 @@ async def evaluate_noun_gender_answer(
         is_correct=evaluation.is_correct,
         correct_article=(evaluation.correct_example or "").split(" ", 1)[0],
         feedback=evaluation.feedback,
+    )
+
+
+@router.post("/nouns/cases/generate", response_model=NounCaseExerciseGenerateResponse)
+async def generate_noun_case_exercise(
+    payload: NounCaseExerciseGenerateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    prompt = await svc.generate_noun_case_exercise(
+        user_id=current_user.user_id,
+        cases=payload.cases,
+    )
+    return NounCaseExerciseGenerateResponse(
+        german_noun_id=prompt.german_noun_id,
+        singular=prompt.singular,
+        definition=prompt.definition,
+        grammatical_case=prompt.grammatical_case,
+        case_label=prompt.case_label,
+        sentence_with_blank=prompt.sentence_with_blank,
+        scenario_native=prompt.scenario_native,
+        article_options=prompt.article_options,
+        incorrect_attempts=prompt.incorrect_attempts,
+        correct_attempts=prompt.correct_attempts,
+    )
+
+
+@router.post("/nouns/cases/evaluate", response_model=NounCaseExerciseEvaluateResponse)
+async def evaluate_noun_case_answer(
+    payload: NounCaseExerciseEvaluateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    evaluation = await svc.evaluate_noun_case_answer(
+        user_id=current_user.user_id,
+        german_noun_id=payload.german_noun_id,
+        grammatical_case=payload.grammatical_case,
+        selected_article=payload.selected_article,
+        sentence_with_blank=payload.sentence_with_blank,
+    )
+    correct_article = (evaluation.correct_example or "").split(" ", 1)[0]
+    return NounCaseExerciseEvaluateResponse(
+        is_correct=evaluation.is_correct,
+        correct_article=correct_article,
+        feedback=evaluation.feedback,
+        correct_phrase=evaluation.correct_example or "",
     )
 
 
