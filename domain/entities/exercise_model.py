@@ -14,6 +14,15 @@ class NounExercisePrompt:
 
 
 @dataclass
+class NounGenderExerciseItem:
+    german_noun_id: UUID
+    singular: str
+    definition: str
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+@dataclass
 class VerbExercisePrompt:
     german_verb_id: UUID | None
     target_language_code: str

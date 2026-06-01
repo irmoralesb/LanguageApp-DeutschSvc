@@ -60,7 +60,11 @@ class ExerciseRepository(ExerciseRepositoryInterface):
         await self.db.refresh(db_item)
         return self._to_verb_domain(db_item)
 
-    async def get_noun_stats_by_user(self, user_id: UUID) -> list[GermanNounStats]:
+    async def get_noun_stats_by_user(
+        self,
+        user_id: UUID,
+        exercise_type: str | None = None,
+    ) -> list[GermanNounStats]:
         stmt = (
             select(
                 NounExerciseResultDataModel.german_noun_id,
@@ -70,6 +74,8 @@ class ExerciseRepository(ExerciseRepositoryInterface):
             .where(NounExerciseResultDataModel.user_id == user_id)
             .group_by(NounExerciseResultDataModel.german_noun_id)
         )
+        if exercise_type is not None:
+            stmt = stmt.where(NounExerciseResultDataModel.exercise_type == exercise_type)
         result = await self.db.execute(stmt)
         return [
             GermanNounStats(

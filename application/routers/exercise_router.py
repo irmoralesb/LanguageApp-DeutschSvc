@@ -6,6 +6,11 @@ from application.routers.dependency_utils import (
     require_role,
 )
 from application.schemas.exercise_schema import (
+    NounGenderExerciseGenerateRequest,
+    NounGenderExerciseGenerateResponse,
+    NounGenderExerciseItemResponse,
+    NounGenderExerciseEvaluateRequest,
+    NounGenderExerciseEvaluateResponse,
     NounExerciseGenerateRequest,
     NounExerciseGenerateResponse,
     NounExerciseEvaluateRequest,
@@ -21,6 +26,49 @@ router = APIRouter(
     tags=["Exercises"],
     dependencies=[Depends(require_role("deutsch-user"))],
 )
+
+
+@router.post("/nouns/gender/generate", response_model=NounGenderExerciseGenerateResponse)
+async def generate_noun_gender_exercise(
+    payload: NounGenderExerciseGenerateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    nouns = await svc.generate_noun_gender_exercise(
+        user_id=current_user.user_id,
+        count=payload.count,
+    )
+    return NounGenderExerciseGenerateResponse(
+        target_score=payload.target_score,
+        nouns=[
+            NounGenderExerciseItemResponse(
+                german_noun_id=n.german_noun_id,
+                singular=n.singular,
+                definition=n.definition,
+                incorrect_attempts=n.incorrect_attempts,
+                correct_attempts=n.correct_attempts,
+            )
+            for n in nouns
+        ],
+    )
+
+
+@router.post("/nouns/gender/evaluate", response_model=NounGenderExerciseEvaluateResponse)
+async def evaluate_noun_gender_answer(
+    payload: NounGenderExerciseEvaluateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    evaluation = await svc.evaluate_noun_gender_answer(
+        user_id=current_user.user_id,
+        german_noun_id=payload.german_noun_id,
+        selected_article=payload.selected_article,
+    )
+    return NounGenderExerciseEvaluateResponse(
+        is_correct=evaluation.is_correct,
+        correct_article=(evaluation.correct_example or "").split(" ", 1)[0],
+        feedback=evaluation.feedback,
+    )
 
 
 @router.post("/nouns/generate", response_model=NounExerciseGenerateResponse)

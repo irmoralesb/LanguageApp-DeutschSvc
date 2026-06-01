@@ -5,6 +5,8 @@ from pydantic import ValidationError
 from uuid import uuid4
 
 from application.schemas.exercise_schema import (
+    NounGenderExerciseEvaluateRequest,
+    NounGenderExerciseGenerateRequest,
     NounExerciseEvaluateRequest,
     NounExerciseGenerateRequest,
 )
@@ -49,3 +51,26 @@ def test_exercise_evaluate_accepts_valid_payload() -> None:
 def test_exercise_generate_rejects_invalid_mode() -> None:
     with pytest.raises(ValidationError):
         NounExerciseGenerateRequest(exercise_mode="invalid")
+
+
+def test_gender_exercise_generate_defaults() -> None:
+    req = NounGenderExerciseGenerateRequest()
+    assert req.target_score == 10
+    assert req.count == 9
+
+
+def test_gender_exercise_generate_rejects_invalid_target_score() -> None:
+    with pytest.raises(ValidationError):
+        NounGenderExerciseGenerateRequest(target_score=0)
+
+
+def test_gender_exercise_evaluate_accepts_articles() -> None:
+    noun_id = uuid4()
+    req = NounGenderExerciseEvaluateRequest(german_noun_id=noun_id, selected_article="der")
+    assert req.german_noun_id == noun_id
+    assert req.selected_article == "der"
+
+
+def test_gender_exercise_evaluate_rejects_invalid_article() -> None:
+    with pytest.raises(ValidationError):
+        NounGenderExerciseEvaluateRequest(german_noun_id=uuid4(), selected_article="den")

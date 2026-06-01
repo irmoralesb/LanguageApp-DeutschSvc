@@ -3,6 +3,7 @@ from uuid import UUID
 
 from domain.entities.exercise_model import (
     NounExercisePrompt,
+    NounGenderExerciseItem,
     VerbExercisePrompt,
     ExerciseEvaluation,
     NounExerciseHistoryRecord,
@@ -22,6 +23,7 @@ from domain.exceptions.user_profile_errors import UserProfileNotFoundError
 
 
 class ExerciseService:
+    GENDER_ARTICLES = ("der", "die", "das")
 
     def __init__(
         self,
@@ -38,6 +40,86 @@ class ExerciseService:
         self.user_profile_repo = user_profile_repo
         self.language_repo = language_repo
         self.llm = llm_provider
+
+    async def generate_noun_gender_exercise(
+        self,
+        user_id: UUID,
+        count: int = 9,
+    ) -> list[NounGenderExerciseItem]:
+        catalog = await self.noun_repo.get_catalog(skip=0, limit=1000)
+        nouns = [
+            noun for noun in catalog
+            if noun.singular and noun.article_singular.lower() in self.GENDER_ARTICLES
+        ]
+        if not nouns:
+            raise ExerciseGenerationError("No singular German nouns available.")
+
+        stats_by_noun = {
+            stat.german_noun_id: stat
+            for stat in await self.exercise_repo.get_noun_stats_by_user(user_id, exercise_type="gender")
+        }
+        weights = []
+        for noun in nouns:
+            stat = stats_by_noun.get(noun.id)
+            incorrect_attempts = 0 if stat is None else stat.total_attempts - stat.correct_attempts
+            weights.append(1 + max(incorrect_attempts, 0) * 2)
+
+        selected = rand_mod.choices(nouns, weights=weights, k=count)
+        items: list[NounGenderExerciseItem] = []
+        for noun in selected:
+            assert noun.id is not None
+            stat = stats_by_noun.get(noun.id)
+            total_attempts = 0 if stat is None else stat.total_attempts
+            correct_attempts = 0 if stat is None else stat.correct_attempts
+            items.append(
+                NounGenderExerciseItem(
+                    german_noun_id=noun.id,
+                    singular=noun.singular,
+                    definition=noun.definition,
+                    incorrect_attempts=max(total_attempts - correct_attempts, 0),
+                    correct_attempts=correct_attempts,
+                )
+            )
+        return items
+
+    async def evaluate_noun_gender_answer(
+        self,
+        user_id: UUID,
+        german_noun_id: UUID,
+        selected_article: str,
+    ) -> ExerciseEvaluation:
+        noun = await self.noun_repo.get_by_id(german_noun_id)
+        if noun is None:
+            raise GermanNounNotFoundError(german_noun_id)
+
+        selected = selected_article.lower().strip()
+        correct_article = noun.article_singular.lower()
+        is_correct = selected == correct_article
+        feedback = (
+            f"Correct: {correct_article} {noun.singular}."
+            if is_correct
+            else f"{noun.singular} uses {correct_article}: {correct_article} {noun.singular}."
+        )
+        record = NounExerciseHistoryRecord(
+            id=None,
+            user_id=user_id,
+            german_noun_id=german_noun_id,
+            exercise_type="gender",
+            target_language_code="de",
+            exercise_mode="singular",
+            scenario_native="Sort the German noun by grammatical gender.",
+            prompt_native=noun.singular,
+            expected_answer=correct_article,
+            user_answer=selected,
+            is_correct=is_correct,
+            feedback=feedback,
+        )
+        await self.exercise_repo.save_noun_result(record)
+        return ExerciseEvaluation(
+            is_correct=is_correct,
+            feedback=feedback,
+            correct_example=f"{correct_article} {noun.singular}",
+        )
 
     async def generate_noun_exercise(
         self,
