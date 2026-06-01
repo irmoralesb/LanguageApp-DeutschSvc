@@ -8,6 +8,7 @@ from domain.german_cases import is_valid_case, normalize_case
 class NounGenderExerciseGenerateRequest(BaseModel):
     target_score: int = Field(default=10, ge=1, le=50)
     count: int = Field(default=9, ge=3, le=30)
+    scope: str = Field(default="catalog", pattern="^(catalog|selections)$")
 
 
 class NounGenderExerciseItemResponse(BaseModel):
@@ -142,3 +143,61 @@ class VerbExerciseEvaluateResponse(BaseModel):
     is_correct: bool
     feedback: str
     correct_example: str | None = None
+
+
+class VerbConjugationExerciseGenerateRequest(BaseModel):
+    german_verb_id: UUID | None = None
+    tense: str = Field(default="present", pattern="^(present|past|future)$")
+    person: str = Field(default="3sg", pattern="^(1sg|2sg|3sg|1pl|2pl|3pl)$")
+
+
+class VerbConjugationExerciseGenerateResponse(BaseModel):
+    german_verb_id: UUID
+    infinitive: str
+    definition: str
+    tense: str
+    person: str
+    person_label: str
+    prompt_native: str
+    options: list[str]
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+class VerbConjugationExerciseEvaluateRequest(BaseModel):
+    german_verb_id: UUID
+    tense: str
+    person: str
+    user_answer: str = Field(min_length=1)
+
+
+class VerbConjugationExerciseEvaluateResponse(BaseModel):
+    is_correct: bool
+    feedback: str
+    correct_form: str
+
+
+class NounPluralExerciseGenerateRequest(BaseModel):
+    german_noun_id: UUID | None = None
+
+
+class NounPluralExerciseGenerateResponse(BaseModel):
+    german_noun_id: UUID
+    singular: str
+    definition: str
+    article_singular: str
+    prompt_native: str
+    options: list[str]
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+class NounPluralExerciseEvaluateRequest(BaseModel):
+    german_noun_id: UUID
+    user_answer: str = Field(min_length=1)
+
+
+class NounPluralExerciseEvaluateResponse(BaseModel):
+    is_correct: bool
+    feedback: str
+    correct_phrase: str

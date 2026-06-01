@@ -23,6 +23,14 @@ from application.schemas.exercise_schema import (
     VerbExerciseGenerateResponse,
     VerbExerciseEvaluateRequest,
     VerbExerciseEvaluateResponse,
+    VerbConjugationExerciseGenerateRequest,
+    VerbConjugationExerciseGenerateResponse,
+    VerbConjugationExerciseEvaluateRequest,
+    VerbConjugationExerciseEvaluateResponse,
+    NounPluralExerciseGenerateRequest,
+    NounPluralExerciseGenerateResponse,
+    NounPluralExerciseEvaluateRequest,
+    NounPluralExerciseEvaluateResponse,
 )
 
 router = APIRouter(
@@ -41,6 +49,7 @@ async def generate_noun_gender_exercise(
     nouns = await svc.generate_noun_gender_exercise(
         user_id=current_user.user_id,
         count=payload.count,
+        scope=payload.scope,
     )
     return NounGenderExerciseGenerateResponse(
         target_score=payload.target_score,
@@ -211,4 +220,90 @@ async def evaluate_verb_answer(
         is_correct=evaluation.is_correct,
         feedback=evaluation.feedback,
         correct_example=evaluation.correct_example,
+    )
+
+
+@router.post("/verbs/conjugation/generate", response_model=VerbConjugationExerciseGenerateResponse)
+async def generate_verb_conjugation_exercise(
+    payload: VerbConjugationExerciseGenerateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    prompt = await svc.generate_verb_conjugation_exercise(
+        user_id=current_user.user_id,
+        tense=payload.tense,
+        person=payload.person,
+        german_verb_id=payload.german_verb_id,
+    )
+    return VerbConjugationExerciseGenerateResponse(
+        german_verb_id=prompt.german_verb_id,
+        infinitive=prompt.infinitive,
+        definition=prompt.definition,
+        tense=prompt.tense,
+        person=prompt.person,
+        person_label=prompt.person_label,
+        prompt_native=prompt.prompt_native,
+        options=prompt.options,
+        incorrect_attempts=prompt.incorrect_attempts,
+        correct_attempts=prompt.correct_attempts,
+    )
+
+
+@router.post("/verbs/conjugation/evaluate", response_model=VerbConjugationExerciseEvaluateResponse)
+async def evaluate_verb_conjugation_answer(
+    payload: VerbConjugationExerciseEvaluateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    evaluation = await svc.evaluate_verb_conjugation_answer(
+        user_id=current_user.user_id,
+        german_verb_id=payload.german_verb_id,
+        tense=payload.tense,
+        person=payload.person,
+        user_answer=payload.user_answer,
+    )
+    return VerbConjugationExerciseEvaluateResponse(
+        is_correct=evaluation.is_correct,
+        feedback=evaluation.feedback,
+        correct_form=evaluation.correct_example or "",
+    )
+
+
+@router.post("/nouns/plural/generate", response_model=NounPluralExerciseGenerateResponse)
+async def generate_noun_plural_exercise(
+    payload: NounPluralExerciseGenerateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    prompt = await svc.generate_noun_plural_exercise(
+        user_id=current_user.user_id,
+        german_noun_id=payload.german_noun_id,
+    )
+    return NounPluralExerciseGenerateResponse(
+        german_noun_id=prompt.german_noun_id,
+        singular=prompt.singular,
+        definition=prompt.definition,
+        article_singular=prompt.article_singular,
+        prompt_native=prompt.prompt_native,
+        options=prompt.options,
+        incorrect_attempts=prompt.incorrect_attempts,
+        correct_attempts=prompt.correct_attempts,
+    )
+
+
+@router.post("/nouns/plural/evaluate", response_model=NounPluralExerciseEvaluateResponse)
+async def evaluate_noun_plural_answer(
+    payload: NounPluralExerciseEvaluateRequest,
+    svc: ExerciseSvcDep,
+    current_user: CurrentUserDep,
+):
+    evaluation = await svc.evaluate_noun_plural_answer(
+        user_id=current_user.user_id,
+        german_noun_id=payload.german_noun_id,
+        user_answer=payload.user_answer,
+    )
+    return NounPluralExerciseEvaluateResponse(
+        is_correct=evaluation.is_correct,
+        feedback=evaluation.feedback,
+        correct_phrase=evaluation.correct_example or "",
     )

@@ -48,6 +48,32 @@ class VerbExercisePrompt:
 
 
 @dataclass
+class VerbConjugationExercisePrompt:
+    german_verb_id: UUID
+    infinitive: str
+    definition: str
+    tense: str
+    person: str
+    person_label: str
+    prompt_native: str
+    options: list[str]
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+@dataclass
+class NounPluralExercisePrompt:
+    german_noun_id: UUID
+    singular: str
+    definition: str
+    article_singular: str
+    prompt_native: str
+    options: list[str]
+    incorrect_attempts: int
+    correct_attempts: int
+
+
+@dataclass
 class ExerciseEvaluation:
     is_correct: bool
     feedback: str

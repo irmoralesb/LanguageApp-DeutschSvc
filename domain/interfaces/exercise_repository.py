@@ -23,5 +23,7 @@ class ExerciseRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_verb_stats_by_user(self, user_id: UUID) -> list[GermanVerbStats]:
+    async def get_verb_stats_by_user(
+        self, user_id: UUID, exercise_type: str | None = None,
+    ) -> list[GermanVerbStats]:
         pass

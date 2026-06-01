@@ -104,7 +104,9 @@ class ExerciseRepository(ExerciseRepositoryInterface):
             created_at=row.created_at,
         )
 
-    async def get_verb_stats_by_user(self, user_id: UUID) -> list[GermanVerbStats]:
+    async def get_verb_stats_by_user(
+        self, user_id: UUID, exercise_type: str | None = None,
+    ) -> list[GermanVerbStats]:
         stmt = (
             select(
                 VerbExerciseResultDataModel.german_verb_id,
@@ -114,6 +116,8 @@ class ExerciseRepository(ExerciseRepositoryInterface):
             .where(VerbExerciseResultDataModel.user_id == user_id)
             .group_by(VerbExerciseResultDataModel.german_verb_id)
         )
+        if exercise_type is not None:
+            stmt = stmt.where(VerbExerciseResultDataModel.exercise_type == exercise_type)
         result = await self.db.execute(stmt)
         return [
             GermanVerbStats(
