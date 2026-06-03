@@ -69,7 +69,7 @@ class ExerciseRepository(ExerciseRepositoryInterface):
             select(
                 NounExerciseResultDataModel.german_noun_id,
                 func.count().label("total"),
-                func.sum(case((NounExerciseResultDataModel.is_correct.is_(True), 1), else_=0)).label("correct"),
+                func.sum(case((NounExerciseResultDataModel.is_correct == True, 1), else_=0)).label("correct"),
             )
             .where(NounExerciseResultDataModel.user_id == user_id)
             .group_by(NounExerciseResultDataModel.german_noun_id)
@@ -111,7 +111,7 @@ class ExerciseRepository(ExerciseRepositoryInterface):
             select(
                 VerbExerciseResultDataModel.german_verb_id,
                 func.count().label("total"),
-                func.sum(case((VerbExerciseResultDataModel.is_correct.is_(True), 1), else_=0)).label("correct"),
+                func.sum(case((VerbExerciseResultDataModel.is_correct == True, 1), else_=0)).label("correct"),
             )
             .where(VerbExerciseResultDataModel.user_id == user_id)
             .group_by(VerbExerciseResultDataModel.german_verb_id)
